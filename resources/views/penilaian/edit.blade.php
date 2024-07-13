@@ -15,10 +15,13 @@
 
     <div class="card shadow mb-4">
         <div class="card-body">
-            <form action="{{ route('penilaian.update') }}" method="POST">
+            <form action="{{ route('penilaian.update', $alternatif->id) }}" method="POST">
                 @csrf
                 @method('PUT')
-                <input type="hidden" name="alternative_id" value="{{ $alternatif->id }}">
+                <div class="form-group">
+                    <label for="alternative_id">Alternatif</label>
+                    <input type="text" id="alternative_id" name="alternative_id" class="form-control" value="{{ $alternatif->kode_alternatif }} - {{ $alternatif->nama_alternatif }}" readonly>
+                </div>
                 <div class="table-responsive">
                     <table class="table table-bordered" width="100%" cellspacing="0">
                         <thead>
@@ -31,13 +34,14 @@
                         <tbody>
                             @foreach ($kriterias as $kriteria)
                                 @php
-                                    $penilaian = $forms->where('kriteria_id', $kriteria->id)->first();
+                                    $penilaian = $forms->firstWhere('kriteria_id', $kriteria->id);
+                                    $nilai = $penilaian ? $penilaian->nilai : '';
                                 @endphp
                                 <tr>
                                     <td>{{ $kriteria->kode_kriteria }}</td>
                                     <td>{{ $kriteria->nama_kriteria }}</td>
                                     <td>
-                                        <input type="number" name="{{ $penilaian->id }}" value="{{ $penilaian ? $penilaian->nilai : 0 }}" class="form-control" required>
+                                        <input type="number" name="nilai[{{ $kriteria->id }}]" class="form-control" value="{{ $nilai }}" required>
                                     </td>
                                 </tr>
                             @endforeach

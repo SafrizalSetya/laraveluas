@@ -1,8 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\Alternatif;
 
+use App\Models\Alternatif;
 use Illuminate\Http\Request;
 
 class AlternatifController extends Controller
@@ -26,6 +26,8 @@ class AlternatifController extends Controller
         ]);
 
         Alternatif::create($request->all());
+
+        // Redirect to index page after creating alternatif
         return redirect()->route('alternatif.index')->with('success', 'Alternatif created successfully.');
     }
 
@@ -47,12 +49,16 @@ class AlternatifController extends Controller
         ]);
 
         $alternatif->update($request->all());
+
+        // Redirect to index page after updating alternatif
         return redirect()->route('alternatif.index')->with('success', 'Alternatif updated successfully.');
     }
 
     public function destroy(Alternatif $alternatif)
     {
         $alternatif->delete();
+
+        // Redirect to index page after deleting alternatif
         return redirect()->route('alternatif.index')->with('success', 'Alternatif deleted successfully.');
     }
 }

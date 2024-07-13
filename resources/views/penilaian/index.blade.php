@@ -4,9 +4,9 @@
     <!-- Page Heading -->
     <h1 class="h3 mb-4 text-gray-800">{{ __('Penilaian') }}</h1>
 
-    @if (session('success'))
-        <div class="alert alert-success border-left-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
+    @if (session('toast_success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('toast_success') }}
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>

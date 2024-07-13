@@ -1,8 +1,7 @@
-<!-- resources/views/perhitungan/wp.blade.php -->
 @extends('layouts.admin')
 
 @section('main-content')
-    <h1 class="h3 mb-4 text-gray-800">{{ __('Perhitungan Weighted Product (WP)') }}</h1>
+    <h1 class="h3 mb-4 text-gray-800">{{ __('Perhitungan Simple Additive Weighting (SAW)') }}</h1>
 
     <!-- Langkah 1: Normalisasi Bobot -->
     <div class="card shadow mb-4">
@@ -45,32 +44,41 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @php
+                            $vektorS = [];
+                        @endphp
                         @foreach ($alternatifs as $alternatif)
                             <tr>
                                 <td>{{ $alternatif->nama_alternatif }}</td>
                                 @php
-                                    $vektorSAlt = 1.0;
+                                    $vektorSAlt = 0;
                                     foreach ($kriterias as $kriteria) {
-                                        $penilaian = $penilaians->where('alternatif_id', $alternatif->id)->where('kriteria_id', $kriteria->id)->first();
-                                        $nilai = $penilaian ? floatval($penilaian->nilai) : 1.0;
+                                        $penilaian = $penilaians->where('alternatif_id', $alternatif->id)
+                                            ->where('kriteria_id', $kriteria->id)
+                                            ->first();
+                                        $nilai = $penilaian ? floatval($penilaian->nilai) : 0;
                                         $bobotNormalized = floatval($kriteria->bobot_normalized);
 
-                                        if ($kriteria->jenis_kriteria == 'Cost') {
-                                            $vektorSAlt *= pow($nilai, -$bobotNormalized);
-                                        } else {
-                                            $vektorSAlt *= pow($nilai, $bobotNormalized);
+                                        if ($nilai != 0) { // Check if $nilai is not zero before division
+                                            if ($kriteria->jenis_kriteria == 'Cost') {
+                                                $vektorSAlt += $bobotNormalized * (1 / $nilai);
+                                            } else {
+                                                $vektorSAlt += $bobotNormalized * $nilai;
+                                            }
                                         }
                                     }
                                     $vektorS[$alternatif->id] = $vektorSAlt;
                                 @endphp
                                 @foreach ($kriterias as $kriteria)
                                     @php
-                                        $penilaian = $penilaians->where('alternatif_id', $alternatif->id)->where('kriteria_id', $kriteria->id)->first();
-                                        $nilai = $penilaian ? floatval($penilaian->nilai) : 1.0;
+                                        $penilaian = $penilaians->where('alternatif_id', $alternatif->id)
+                                            ->where('kriteria_id', $kriteria->id)
+                                            ->first();
+                                        $nilai = $penilaian ? floatval($penilaian->nilai) : 0;
                                     @endphp
                                     <td>{{ $nilai }}</td>
                                 @endforeach
-                                <td>{{ number_format($vektorSAlt, 4) }}</td>
+                                <td>{{ $vektorSAlt != 0 ? number_format($vektorSAlt, 4) : 'Undefined' }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -92,11 +100,14 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @php $totalVektorS = array_sum($vektorS); @endphp
+                        @php
+                            $totalVektorS = array_sum($vektorS);
+                            $vektorV = [];
+                        @endphp
                         @foreach ($vektorS as $altId => $nilaiS)
                             <tr>
                                 <td>{{ $alternatifs->find($altId)->nama_alternatif }}</td>
-                                <td>{{ number_format($nilaiS / $totalVektorS, 4) }}</td>
+                                <td>{{ $totalVektorS != 0 ? number_format($nilaiS / $totalVektorS, 4) : 'Undefined' }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -113,18 +124,22 @@
                 <table class="table table-bordered">
                     <thead>
                         <tr>
+                            <th>Ranking</th>
                             <th>Nama Alternatif</th>
                             <th>Vektor V</th>
-                            <th>Ranking</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @php $rank = 1; @endphp
-                        @foreach ($vektorV as $altId => $nilaiV)
+                        @php
+                            // Sort $vektorS descending based on values
+                            arsort($vektorS);
+                            $rank = 1;
+                        @endphp
+                        @foreach ($vektorS as $altId => $nilaiS)
                             <tr>
-                                <td>{{ $alternatifs->find($altId)->nama_alternatif }}</td>
-                                <td>{{ number_format($nilaiV, 4) }}</td>
                                 <td>{{ $rank++ }}</td>
+                                <td>{{ $alternatifs->find($altId)->nama_alternatif }}</td>
+                                <td>{{ $totalVektorS != 0 ? number_format($nilaiS / $totalVektorS, 4) : 'Undefined' }}</td>
                             </tr>
                         @endforeach
                     </tbody>

@@ -90,10 +90,10 @@
             </li>
 
             <!-- Add this to your navigation menu -->
-            <li class="nav-item {{ Nav::isRoute('perhitungan.wp') }}">
-                <a class="nav-link" href="{{ route('perhitungan.wp') }}">
+            <li class="nav-item {{ Nav::isRoute('perhitungan.saw') }}">
+                <a class="nav-link" href="{{ route('perhitungan.saw') }}">
                     <i class="fas fa-fw fa-calculator"></i>
-                    <span>{{ __('Perhitungan WP') }}</span>
+                    <span>{{ __('Perhitungan SAW') }}</span>
                 </a>
             </li>
 

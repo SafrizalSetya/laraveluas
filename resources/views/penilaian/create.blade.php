@@ -19,7 +19,7 @@
                 @csrf
                 <div class="form-group">
                     <label for="alternative_id">Alternatif</label>
-                    <select name="alternative_id" class="form-control" required>
+                    <select id="alternative_id" name="alternative_id" class="form-control" required>
                         <option value="">Pilih Alternatif</option>
                         @foreach ($alternatifs as $alternatif)
                             <option value="{{ $alternatif->id }}">{{ $alternatif->kode_alternatif }} - {{ $alternatif->nama_alternatif }}</option>
@@ -41,7 +41,7 @@
                                     <td>{{ $kriteria->kode_kriteria }}</td>
                                     <td>{{ $kriteria->nama_kriteria }}</td>
                                     <td>
-                                        <input type="number" name="{{ $kriteria->id }}" class="form-control" required>
+                                        <input type="number" name="nilai[{{ $kriteria->id }}]" class="form-control" required>
                                     </td>
                                 </tr>
                             @endforeach

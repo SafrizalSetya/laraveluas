@@ -10,8 +10,9 @@ use Illuminate\Support\Facades\DB;
 
 class PerhitunganController extends Controller
 {
-    public function wp()
+    public function saw()
     {
+        // Ambil semua alternatif, kriteria, dan penilaian
         $alternatifs = Alternatif::all();
         $kriterias = Kriteria::all();
         $penilaians = Penilaian::all();
@@ -22,33 +23,42 @@ class PerhitunganController extends Controller
             $kriteria->bobot_normalized = $kriteria->bobot / $totalBobot;
         }
 
-        // Langkah 2: Menghitung Vektor S
-        $vektorS = [];
-        foreach ($alternatifs as $alternatif) {
-            $vektorS[$alternatif->id] = 1.0;
-            foreach ($kriterias as $kriteria) {
-                $penilaian = $penilaians->where('alternatif_id', $alternatif->id)->where('kriteria_id', $kriteria->id)->first();
-                $nilai = $penilaian ? floatval($penilaian->nilai) : 1.0;
-                $bobotNormalized = floatval($kriteria->bobot_normalized);
+   // Langkah 2: Menghitung Vektor S
+    $vektorS = [];
+    foreach ($alternatifs as $alternatif) {
+    $vektorS[$alternatif->id] = 0;
+    foreach ($kriterias as $kriteria) {
+        // Ambil penilaian untuk alternatif dan kriteria yang sesuai
+        $penilaian = Penilaian::where('alternatif_id', $alternatif->id)
+                              ->where('kriteria_id', $kriteria->id)
+                              ->first();
+        
+        // Lakukan pengecekan apakah penilaian ditemukan
+        $nilai = $penilaian ? floatval($penilaian->nilai) : 0;
+        $bobotNormalized = floatval($kriteria->bobot_normalized);
 
-                if ($kriteria->jenis_kriteria == 'Cost') {
-                    $vektorS[$alternatif->id] *= pow($nilai, -$bobotNormalized);
-                } else {
-                    $vektorS[$alternatif->id] *= pow($nilai, $bobotNormalized);
-                }
-            }
+        // Hitung nilai vektor S sesuai jenis kriteria
+        if ($kriteria->jenis_kriteria == 'Cost' && $nilai != 0) {
+            $vektorS[$alternatif->id] += $bobotNormalized / $nilai;
+        } else {
+            $vektorS[$alternatif->id] += $bobotNormalized * $nilai;
         }
+    }
+}
 
-        // Langkah 3: Menghitung Vektor V
-        $totalVektorS = array_sum($vektorS);
+        // Langkah 3: Perankingan
+        arsort($vektorS);
+
+        // Menyimpan ranking ke variabel vektorV untuk ditampilkan di view
         $vektorV = [];
+        $rank = 1;
         foreach ($vektorS as $altId => $nilaiS) {
-            $vektorV[$altId] = $nilaiS / $totalVektorS;
+            $vektorV[$altId] = [
+                'nilai' => $nilaiS,
+                'ranking' => $rank++
+            ];
         }
 
-        // Langkah 4: Perankingan
-        arsort($vektorV);
-
-        return view('perhitungan.wp', compact('alternatifs', 'kriterias', 'penilaians', 'vektorS', 'vektorV'));
+        return view('perhitungan.saw', compact('alternatifs', 'kriterias', 'penilaians', 'vektorV'));
     }
 }
